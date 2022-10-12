@@ -1,28 +1,86 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">Requisições HTTP no Vue</h1>
+        <p class="lead">Usando a biblioteca Axios para fazer chamadas Ajax à uma API REST.</p>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <TarefasLista />
+      <button class="btn btn-primary mt-4 mb-2" @click="download">Baixar imagem</button>
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" :style="{width: progresso + '%'}" :aria-valuenow="progresso" aria-valuemin="0" aria-valuemax="100">
+          {{ progresso }}%
+        </div>
+      </div>
+
+      <div v-if="imagem">
+        <img :src="imagem" style="max-width: 100%">
+      </div>
+
+    </div>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import axios from 'axios'
+// import config from './config/config'
+import TarefasLista from './components/TarefasLista.vue'
 
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+    components: {
+        TarefasLista
+    },
+    data (){
+      return {
+        progresso: 0,
+        imagem: undefined
+      }
+    },
+    // async created() {
+    //   const tarefa1 = await axios.get(`${config.apiURL}/tarefas/1`)
+    //   const tarefa3 = await axios.get(`${config.apiURL}/tarefas/3`)
+    //   console.log('Tarefa 1: ', tarefa1),
+    //   console.log('Tarefa 3: ', tarefa3)
+    //   // created() {
+    // //   axios.all([
+    // //     axios.get(`${config.apiURL}/tarefas/1`),
+    // //     axios.get(`${config.apiURL}/tarefas/3`)
+    // //   ]).then(axios.spread((tarefa1, tarefa3) => {
+    // //     console.log('Requisições simultâneas:'),
+    // //     console.log('Tarefa 1: ', tarefa1),
+    // //     console.log('Tarefa 3: ', tarefa3)
+    // //   })).then(response => {
+    // //     const [tarefa1, tarefa3] = []
+    // //     console.log('Tarefa 1: ', tarefa1),
+    // //     console.log('Tarefa 3: ', tarefa3)
+    // //   })
+    // // }
+    // },
+    methods: {
+      download() {
+        axios.get(
+          'https://images.unsplash.com/photo-1587300003388-59208cc962cb?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
+          {
+            responseType: 'blob',
+            onDownloadProgress: (progressEvent) => {
+              console.log('Fazendo download...', progressEvent)
+              this.progresso = (progressEvent.loaded / progressEvent.total * 100).toFixed(0)
+            }
+          }
+        ).then(response => {
+          console.log('Download concluido!', response)
+          const reader = new window.FileReader()
+          reader.readAsDataURL(response.data)
+          reader.onload = () => {
+            this.imagem = reader.result
+          }
+        })
+      }
+    }
 }
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
